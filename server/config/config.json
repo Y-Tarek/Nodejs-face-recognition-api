@@ -1,0 +1,8 @@
+{
+    "development":{
+        "PORT":3000,
+        "MONGODB_URI":"mongodb://localhost:27017/ChildFounder",
+        "JWT_SECRET":"dhjvyr7bdu382hdiqn83y2753dgb",
+        "DOMAIN_MAIL":"yassertarek98@gmail.com"
+    }
+}
