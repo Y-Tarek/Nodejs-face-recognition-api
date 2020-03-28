@@ -53,11 +53,7 @@ const UserSchema = new mongoose.Schema({
             type:String,
             required:true
         },
-    }],
-
-    refreshtoken:{
-        type:String,
-    },
+    }]
    
 });
 
@@ -75,15 +71,6 @@ const UserSchema = new mongoose.Schema({
             return token;
         });
    }
-
-   UserSchema.methods.generateRefreshToken = function(){
-       var user = this;
-       var token = randtoken.uid(256);
-        user.refreshtoken = token;
-         return user.save().then(() => {
-             console.log(token);
-         })
-   } 
 
    UserSchema.methods.removeToken = function(token){
        var user = this;

@@ -1,5 +1,4 @@
 const multer = require('multer');
-
 //Upload images to disk Storage using multer MiddleWare
 var uploadFiles = (dir) => {
     var storage = multer.diskStorage({

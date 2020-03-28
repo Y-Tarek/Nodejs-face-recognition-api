@@ -1,4 +1,5 @@
 const express = require('express');
+const app = express();
 const bodyParser = require('body-parser');
 const config = require('./config/config')
 const {User} = require('./db/models/user');
@@ -6,20 +7,19 @@ const {Post} = require('./db/models/post');
 const {mongoose} = require('./db/mongoose');
 const {ObjectId} = require('mongodb');
 const {authinticate}  = require('./MiddleWare/authintcate');
-const {authorize} = require('./MiddleWare/authorize');
-const multer  = require('./playground/multer');
+const {authorize} = require('./MiddleWare/authorize_admin');
 const fr = require('face-recognition');
-const {Hash} = require('./playground/hash');
-const mail = require('./playground/mail');
 const face_reco = require('./playground/face-recogntion');
 const path = require('path');
 const _ = require('lodash');
 const cors = require('cors');
-var app = express();
-var  ip = require('ip');
-var address = ip.address();
+const os = require('os');
+const  ip = require('ip');
+const address = ip.address();
+const multer  = require('./playground/multer');
+// Naming conventions in windows is diffrent than linux and mac as for the uploads folder
+const  upload = multer.uploadFiles(os.platform() == 'win32' ? '../uploads' : './uploads');
 var fullAddress;
-var  upload = multer.uploadFiles('./uploads');
 
 //Express MiddleWare
 app.use(bodyParser.json());
@@ -34,7 +34,6 @@ app.post('/register',(req,res) => {
     newUser.save().then(() => {
         return newUser.generateAuthToken();
     }).then((token)=>{
-        //mail.sendEmail(body.email,"Welcome to black Mirror");
         res.header('Authorization', 'Bearer'+token).status(200).send(newUser);
     }).catch((e) => {res.status(400).send(e)})
 })
@@ -42,11 +41,10 @@ app.post('/register',(req,res) => {
 app.post('/login',(req,res) => {
     var body = _.pick(req.body,['UserNameOrEmail','password']);
     User.findByCredintials(body.UserNameOrEmail,body.password).then((user) => {
-        user.generateRefreshToken().then(() => {
             return user.generateAuthToken().then((token) => {
                 res.header('Authorization', 'Bearer'+token).send(user);
             })
-        })
+        
     }).catch((e) => {res.status(404).send(e)});
 })
 
@@ -56,7 +54,7 @@ app.delete('/logout',authinticate,(req,res) => {
   })
 })
 
-//User Services and prevliges
+//User Services and Prevleges
 app.get('/profile',authinticate,(req,res) => {
     
     res.status(200).send(req.user);
@@ -141,7 +139,7 @@ app.post('/search/:gender&:type',upload.single(""),authinticate,(req,res) => {
             img:d.main_image,
             name:d.name
         }));
-        face_reco.train_data(imageAndNames);
+        face_reco.add_faces(imageAndNames);
         var list = face_reco.prdeict_results(serach_image);
         if(list.length == 0){
             return res.status(404).send("No matches")
@@ -170,7 +168,7 @@ app.post('/deletePost/:id',authinticate,(req,res) => {
    })
 })
 
-//Admin privleges and services
+//Admin Services and Prevleges
 app.get('/users',authorize,(req,res) => {
     User.find({role:'user'}).then((users) => {
         if(!users){
